@@ -7,3 +7,111 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum SeatStatus {
+  AVAILABLE
+  LOCKED
+  RESERVED
+}
+
+enum ReservationStatus {
+  CONFIRMED
+  CANCELLED
+  EXPIRED
+}
+
+model User {
+  id  String  @id @default(uuid())
+  name String
+  email String @unique
+  passwordHash  String  @map("password_hash")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  refreshToken  String? @map("refresh_token")
+
+  @@map("users")
+}
+
+model Genre {
+  id  String  @id @default(uuid())
+  name String @unique
+
+  @@map("genres")
+}
+
+model Movie {
+  id  String @id @default(uuid())
+  title String
+  description String
+  posterUrl String? @map("poster_url")
+  durationMinutes Int @map("duration_minutes")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+
+  @@index([title])
+  @@map("movies")
+}
+
+model MovieGenre {
+  movieId String @map("movie_id")
+  genreId String @map("genre_id")
+
+  @@id([movieId, genreId])
+  @@map("movie_genres")
+}
+
+model Showtime {
+  id             String        @id @default(uuid())
+  movieId        String        @map("movie_id")
+  startTime      DateTime      @map("start_time")
+  endTime        DateTime      @map("end_time")
+  totalSeats     Int           @map("total_seats")
+  availableSeats Int           @map("available_seats")
+  price          Decimal       @db.Decimal(10, 2)
+  hallName       String        @map("hall_name")
+
+  @@index([movieId])
+  @@index([startTime])
+  @@index([movieId, startTime])
+  @@map("showtimes")
+}
+
+model Seat {
+  id           String            @id @default(uuid())
+  showtimeId   String            @map("showtime_id")
+  seatNumber   String            @map("seat_number")
+  status  SeatStatus  @default(AVAILABLE)
+  lockedUntil DateTime? @map("locked_until")
+
+  @@index([showtimeId])
+  @@index([showtimeId, status])
+  @@index([lockedUntil])
+  @@map("seats")
+}
+
+model Reservation {
+  id          String            @id @default(uuid())
+  userId      String            @map("user_id")
+  showtimeId  String            @map("showtime_id")
+  reservedAt  DateTime          @default(now()) @map("reserved_at")
+  status      ReservationStatus @default(CONFIRMED)
+  totalPrice  Decimal           @map("total_price") @db.Decimal(10, 2)
+
+  @@index([userId])                   
+  @@index([showtimeId])               
+  @@index([userId, status])           
+  @@map("reservations")
+}
+
+model ReservationSeat {
+  reservationId String      @map("reservation_id")
+  seatId        String      @map("seat_id")
+
+  @@id([reservationId, seatId])
+  @@map("reservation_seats")
+}
