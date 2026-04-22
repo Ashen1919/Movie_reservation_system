@@ -26,32 +26,37 @@ enum ReservationStatus {
 }
 
 model User {
-  id  String  @id @default(uuid())
-  name String
-  email String @unique
-  passwordHash  String  @map("password_hash")
-  createdAt DateTime  @default(now()) @map("created_at")
-  updatedAt DateTime  @updatedAt @map("updated_at")
-  refreshToken  String? @map("refresh_token")
+  id           String        @id @default(uuid())
+  name         String
+  email        String        @unique
+  passwordHash String        @map("password_hash")
+  createdAt    DateTime      @default(now()) @map("created_at")
+  updatedAt    DateTime      @updatedAt @map("updated_at")
+  refreshToken String?       @map("refresh_token")
+  role         Role          @default(USER)
+  reservations Reservation[]
 
   @@map("users")
 }
 
 model Genre {
-  id  String  @id @default(uuid())
-  name String @unique
+  id     String       @id @default(uuid())
+  name   String       @unique
+  movies MovieGenre[]
 
   @@map("genres")
 }
 
 model Movie {
-  id  String @id @default(uuid())
-  title String
-  description String
-  posterUrl String? @map("poster_url")
-  durationMinutes Int @map("duration_minutes")
-  createdAt DateTime  @default(now()) @map("created_at")
-  updatedAt DateTime  @updatedAt @map("updated_at")
+  id              String       @id @default(uuid())
+  title           String
+  description     String
+  posterUrl       String?      @map("poster_url")
+  durationMinutes Int          @map("duration_minutes")
+  createdAt       DateTime     @default(now()) @map("created_at")
+  updatedAt       DateTime     @updatedAt @map("updated_at")
+  genres          MovieGenre[]
+  showtimes       Showtime[]
 
   @@index([title])
   @@map("movies")
@@ -60,6 +65,8 @@ model Movie {
 model MovieGenre {
   movieId String @map("movie_id")
   genreId String @map("genre_id")
+  genre   Genre  @relation(fields: [genreId], references: [id], onDelete: Cascade)
+  movie   Movie  @relation(fields: [movieId], references: [id], onDelete: Cascade)
 
   @@id([movieId, genreId])
   @@map("movie_genres")
@@ -74,6 +81,9 @@ model Showtime {
   availableSeats Int           @map("available_seats")
   price          Decimal       @db.Decimal(10, 2)
   hallName       String        @map("hall_name")
+  movie          Movie         @relation(fields: [movieId], references: [id], onDelete: Cascade)
+  seats          Seat[]
+  reservations   Reservation[]
 
   @@index([movieId])
   @@index([startTime])
@@ -82,11 +92,13 @@ model Showtime {
 }
 
 model Seat {
-  id           String            @id @default(uuid())
-  showtimeId   String            @map("showtime_id")
-  seatNumber   String            @map("seat_number")
-  status  SeatStatus  @default(AVAILABLE)
-  lockedUntil DateTime? @map("locked_until")
+  id          String            @id @default(uuid())
+  showtimeId  String            @map("showtime_id")
+  seatNumber  String            @map("seat_number")
+  status      SeatStatus        @default(AVAILABLE)
+  lockedUntil DateTime?         @map("locked_until")
+  showtime    Showtime          @relation(fields: [showtimeId], references: [id], onDelete: Cascade)
+  reservation ReservationSeat[]
 
   @@index([showtimeId])
   @@index([showtimeId, status])
@@ -95,22 +107,27 @@ model Seat {
 }
 
 model Reservation {
-  id          String            @id @default(uuid())
-  userId      String            @map("user_id")
-  showtimeId  String            @map("showtime_id")
-  reservedAt  DateTime          @default(now()) @map("reserved_at")
-  status      ReservationStatus @default(CONFIRMED)
-  totalPrice  Decimal           @map("total_price") @db.Decimal(10, 2)
+  id         String            @id @default(uuid())
+  userId     String            @map("user_id")
+  showtimeId String            @map("showtime_id")
+  reservedAt DateTime          @default(now()) @map("reserved_at")
+  status     ReservationStatus @default(CONFIRMED)
+  totalPrice Decimal           @map("total_price") @db.Decimal(10, 2)
+  user       User              @relation(fields: [userId], references: [id])
+  showtime   Showtime          @relation(fields: [showtimeId], references: [id])
+  seats      ReservationSeat[]
 
-  @@index([userId])                   
-  @@index([showtimeId])               
-  @@index([userId, status])           
+  @@index([userId])
+  @@index([showtimeId])
+  @@index([userId, status])
   @@map("reservations")
 }
 
 model ReservationSeat {
   reservationId String      @map("reservation_id")
   seatId        String      @map("seat_id")
+  reservation   Reservation @relation(fields: [reservationId], references: [id], onDelete: Cascade)
+  seat          Seat        @relation(fields: [seatId], references: [id])
 
   @@id([reservationId, seatId])
   @@map("reservation_seats")
