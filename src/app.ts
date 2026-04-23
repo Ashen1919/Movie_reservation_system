@@ -2,9 +2,18 @@ import cookieParser from "cookie-parser";
 import express from "express";
 import cors from 'cors';
 import authRoutes from "./routes/auth.routes.js";
+import swaggerUi from 'swagger-ui-express';
+import { swaggerSpec } from "./config/swagger.js";
 
 // create express app
 const app = express();
+
+// config cors
+app.use(cors({
+    origin: 'http://localhost:5173',
+    credentials: true,
+    methods: [ 'GET','POST','PUT','DELETE','PATCH','OPTIONS' ]
+}));
 
 // middlewares
 app.use(express.json());
@@ -17,14 +26,12 @@ app.get("/health", (req, res) => {
     });
 });
 
+// swagger docs
+app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
+    swaggerOptions: { persistAuthorization: true }
+}));
+
 // routes
 app.use('/api/auth', authRoutes);
-
-// config cors
-app.use(cors({
-    origin: 'http://localhost:5173',
-    credentials: true,
-    methods: [ 'GET','POST','PUT','DELETE','PATCH','OPTIONS' ]
-}));
 
 export default app;
