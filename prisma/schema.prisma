@@ -6,23 +6,6 @@ datasource db {
   provider = "postgresql"
 }
 
-enum Role {
-  USER
-  ADMIN
-}
-
-enum SeatStatus {
-  AVAILABLE
-  LOCKED
-  RESERVED
-}
-
-enum ReservationStatus {
-  CONFIRMED
-  CANCELLED
-  EXPIRED
-}
-
 model User {
   id              String        @id @default(uuid())
   name            String
@@ -32,8 +15,8 @@ model User {
   updatedAt       DateTime      @updatedAt @map("updated_at")
   refreshToken    String?       @map("refresh_token")
   role            Role          @default(USER)
-  reservations    Reservation[]
   isEmailVerified Boolean       @default(false)
+  reservations    Reservation[]
 
   @@map("users")
 }
@@ -80,9 +63,9 @@ model Showtime {
   availableSeats Int           @map("available_seats")
   price          Decimal       @db.Decimal(10, 2)
   hallName       String        @map("hall_name")
-  movie          Movie         @relation(fields: [movieId], references: [id], onDelete: Cascade)
-  seats          Seat[]
   reservations   Reservation[]
+  seats          Seat[]
+  movie          Movie         @relation(fields: [movieId], references: [id], onDelete: Cascade)
 
   @@index([movieId])
   @@index([startTime])
@@ -96,8 +79,8 @@ model Seat {
   seatNumber  String            @map("seat_number")
   status      SeatStatus        @default(AVAILABLE)
   lockedUntil DateTime?         @map("locked_until")
-  showtime    Showtime          @relation(fields: [showtimeId], references: [id], onDelete: Cascade)
   reservation ReservationSeat[]
+  showtime    Showtime          @relation(fields: [showtimeId], references: [id], onDelete: Cascade)
 
   @@index([showtimeId])
   @@index([showtimeId, status])
@@ -112,9 +95,9 @@ model Reservation {
   reservedAt DateTime          @default(now()) @map("reserved_at")
   status     ReservationStatus @default(CONFIRMED)
   totalPrice Decimal           @map("total_price") @db.Decimal(10, 2)
-  user       User              @relation(fields: [userId], references: [id])
-  showtime   Showtime          @relation(fields: [showtimeId], references: [id])
   seats      ReservationSeat[]
+  showtime   Showtime          @relation(fields: [showtimeId], references: [id])
+  user       User              @relation(fields: [userId], references: [id])
 
   @@index([userId])
   @@index([showtimeId])
@@ -130,4 +113,21 @@ model ReservationSeat {
 
   @@id([reservationId, seatId])
   @@map("reservation_seats")
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum SeatStatus {
+  AVAILABLE
+  LOCKED
+  RESERVED
+}
+
+enum ReservationStatus {
+  CONFIRMED
+  CANCELLED
+  EXPIRED
 }

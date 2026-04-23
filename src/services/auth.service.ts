@@ -14,7 +14,7 @@ export const signup = async (name: string, email: string, password: string) => {
     // signup a user
     const user = await prisma.user.create({data: { name, email, passwordHash }});
 
-    return {id: user.id, name: user.name, email: user.email, role: user.role}
+    return {id: user.id, name: user.name, email: user.email, role: user.role, emailVerified: user.isEmailVerified}
 };
 
 // login service
