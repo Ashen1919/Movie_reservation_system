@@ -1,6 +1,6 @@
 /**
  * @openapi
- * /api/auth/signup
+ * /api/auth/signup:
  *  post:
  *      tags: [Auth]
  *      summary: Register a new user
