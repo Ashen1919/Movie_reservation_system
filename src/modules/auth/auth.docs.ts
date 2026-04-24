@@ -4,6 +4,7 @@
  *  post:
  *      tags: [Auth]
  *      summary: Register a new user
+ *      security: []
  *      requestBody: 
  *          required: true
  *          content:
@@ -17,10 +18,10 @@
  *                              example: John Doe
  *                          email:
  *                              type: string
- *                              example: jogn@example.com
+ *                              example: user@example.com
  *                          password: 
  *                              type: string
- *                              example: StrongPass@123
+ *                              example: UserPass123!
  *      responses:
  *          201:
  *              description: User created successfully
@@ -42,6 +43,7 @@
  *   post:
  *     tags: [Auth]
  *     summary: Login and receive tokens
+ *     security: []
  *     requestBody:
  *       required: true
  *       content:
@@ -52,10 +54,10 @@
  *             properties:
  *               email:
  *                 type: string
- *                 example: admin@cinema.com
+ *                 example: user@example.com
  *               password:
  *                 type: string
- *                 example: AdminPass123!
+ *                 example: UserPass123!
  *     responses:
  *       200:
  *         description: Login successful

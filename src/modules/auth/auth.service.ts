@@ -1,6 +1,6 @@
-import prisma from "../config/db.js";
+import prisma from "../../config/db.js";
 import bcrypt from 'bcrypt';
-import { signAccessToken, signRefreshToken, verifyRefreshToken } from "../config/jwt.js";
+import { signAccessToken, signRefreshToken, verifyRefreshToken } from "../../config/jwt.js";
 
 // signup service
 export const signup = async (name: string, email: string, password: string) => {
