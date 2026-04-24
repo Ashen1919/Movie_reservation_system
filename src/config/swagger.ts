@@ -15,7 +15,7 @@ const options: swaggerJSDoc.Options = {
             securitySchemes: {
                 bearerAuth: {
                     type: 'http',
-                    schema: 'bearer',
+                    scheme: 'bearer',
                     bearerFormat: 'JWT',
                     description: 'Paste your access token here (without "Bearer " prefix)'
                 }
@@ -34,9 +34,14 @@ const options: swaggerJSDoc.Options = {
                     }
                 }
             }
-        }
+        },
+        security: [
+            {
+                bearerAuth: []
+            }
+        ]
     },
-    apis: ['src/docs/*.docs.ts']
+    apis: ['src/modules/**/*.docs.ts']
 };
 
 export const swaggerSpec = swaggerJSDoc(options);
