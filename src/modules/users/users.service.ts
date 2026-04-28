@@ -19,3 +19,21 @@ export const myProfile = async (userId: string) => {
 
     return user;
 }
+
+// get all users list service
+export const getAllUsers = async () => {
+    const users = await prisma.user.findMany({
+        select: {
+            id: true,
+            name: true,
+            email: true,
+            createdAt: true,
+            role: true,
+            isEmailVerified: true
+        } 
+    });
+
+    if (!users) throw new Error('No any user found!');
+
+    return users;
+}
