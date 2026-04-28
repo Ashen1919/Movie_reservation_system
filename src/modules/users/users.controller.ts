@@ -17,4 +17,21 @@ export const myProfile = async (req: Request, res: Response) => {
             message: err.message
         });
     }
-}
+};
+
+// get all users list 
+export const getAllUsers = async (req: Request, res: Response) => {
+    try {
+        const users = await UserService.getAllUsers();
+
+        res.status(200).json({
+            success: true,
+            data: { users }
+        });
+    } catch(err: any) {
+        res.status(500).json({
+            success: false,
+            message: err.message
+        });
+    }
+};
