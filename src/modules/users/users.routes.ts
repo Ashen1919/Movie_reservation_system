@@ -7,5 +7,7 @@ const userRoutes = Router();
 
 userRoutes.get('/me', authenticate, UserController.myProfile);
 userRoutes.get('/', authenticate, authorize('ADMIN'), UserController.getAllUsers);
+userRoutes.patch('/:id/block', authenticate, authorize('ADMIN'), UserController.blockUser);
+userRoutes.patch('/:id/unblock', authenticate, authorize('ADMIN'), UserController.unblockUser);
 
 export default userRoutes;

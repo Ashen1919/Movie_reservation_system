@@ -1,7 +1,8 @@
 import type { NextFunction, Request, Response } from "express";
 import { verifyAccessToken } from "../config/jwt.js";
+import prisma from "../config/db.js";
 
-export const authenticate = (req: Request, res: Response, next: NextFunction) => {
+export const authenticate = async (req: Request, res: Response, next: NextFunction) => {
     // get authorization header
     const authHeader = req.headers.authorization;
     // validate token
@@ -22,7 +23,20 @@ export const authenticate = (req: Request, res: Response, next: NextFunction) =>
     }
 
     try{
-        const payload = verifyAccessToken(token);
+        const payload = verifyAccessToken(token)  as { userId: string, role: string };
+        
+        const user = await prisma.user.findUnique({
+            where: { id: payload.userId },
+            select: { isBlocked: true }
+        });
+
+        if (!user) {
+            return res.status(401).json({ success: false, message: 'User not found' });
+        }
+
+        if (user.isBlocked) {
+            return res.status(403).json({ success: false, message: 'Your account has been blocked' });
+        }
         (req as any).user = payload;
         next();
     } catch (err: any) {

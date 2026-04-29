@@ -16,6 +16,7 @@ model User {
   refreshToken    String?       @map("refresh_token")
   role            Role          @default(USER)
   isEmailVerified Boolean       @default(false)
+  isBlocked       Boolean       @default(false)
   reservations    Reservation[]
 
   @@map("users")
