@@ -11,15 +11,31 @@ export const createGenre = async (name: string) => {
 };
 
 // get all genres
-export const getAllGenre = async () => {
-    const genres = await prisma.genre.findMany({
-        select: {
-            id: true,
-            name: true
-        }
-    });
-    if (!genres) throw new Error('Fail to find any Genre!');
+export const getAllGenre = async (page: number = 1, limit: number = 10) => {
+    const skip = (page - 1) * limit;
 
-    return genres;
+    const [genres, total] = await prisma.$transaction([
+        prisma.genre.findMany({
+            select: {id: true, name: true},
+            skip,
+            take: limit,
+            orderBy: { name: 'asc' }
+        }),
+        prisma.genre.count()
+    ]);
+    
+    if (genres.length === 0) throw new Error('Fail to find any Genre!');
+
+    return {
+        data: genres,
+        meta: {
+            total,
+            page,
+            limit,
+            totalPage: Math.ceil(total / limit),
+            hasNextPage: page < Math.ceil(total / limit),
+            hasPrevPage: page > 1
+        }
+    };
 
 };
