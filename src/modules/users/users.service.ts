@@ -12,7 +12,8 @@ export const myProfile = async (userId: string) => {
             email: true,
             createdAt: true,
             role: true,
-            isEmailVerified: true
+            isEmailVerified: true,
+            isBlocked: true
         } 
     });
     if(!user) throw new Error('User does not exist!');
@@ -32,7 +33,8 @@ export const getAllUsers = async (page: number = 1, limit: number = 10) => {
                 email: true,
                 createdAt: true,
                 role: true,
-                isEmailVerified: true
+                isEmailVerified: true,
+                isBlocked: true
             },
             skip,
             take: limit,
@@ -55,3 +57,24 @@ export const getAllUsers = async (page: number = 1, limit: number = 10) => {
         }
     }
 };
+
+// Block a user
+export const blockUser = async (userId: string) => {
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new Error('User not found');
+    if (user.role === 'ADMIN') throw new Error('Cannot block an admin');
+
+    return prisma.user.update({
+        where: { id: userId },
+        data: { isBlocked: true }
+    });
+};
+
+// Unblock a user
+export const unblockUser = async (userId: string) => {
+  return prisma.user.update({
+    where: { id: userId },
+    data: { isBlocked: false }
+  });
+};
+

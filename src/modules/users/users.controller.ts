@@ -38,3 +38,51 @@ export const getAllUsers = async (req: Request, res: Response) => {
         });
     }
 };
+
+// Block a user
+export const blockUser = async (req: Request, res: Response) => {
+    try {
+        const { id } = req.params;
+        const userId = Array.isArray(id) ? id[0] : id;
+
+        if (!userId) {
+            return res.status(400).json({ success: false, message: 'User ID is required' });
+        }
+
+        await UserService.blockUser(userId);
+
+        res.status(200).json({
+            success: true,
+            message: 'Successfully Blocked the user!'
+        });
+    } catch (err: any) {
+        res.status(500).json({
+            success: false,
+            message: err.message
+        });
+    }
+};
+
+// Unblock a user
+export const unblockUser = async (req: Request, res: Response) => {
+    try {
+        const { id } = req.params;
+        const userId = Array.isArray(id) ? id[0] : id;
+
+        if (!userId) {
+            return res.status(400).json({ success: false, message: 'User ID is required' });
+        }
+
+        await UserService.unblockUser(userId);
+
+        res.status(200).json({
+            success: true,
+            message: 'Successfully unblocked the user!'
+        });
+    } catch (err: any) {
+        res.status(500).json({
+            success: false,
+            message: err.message
+        });
+    }
+};
