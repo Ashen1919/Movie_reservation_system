@@ -21,19 +21,37 @@ export const myProfile = async (userId: string) => {
 }
 
 // get all users list service
-export const getAllUsers = async () => {
-    const users = await prisma.user.findMany({
-        select: {
-            id: true,
-            name: true,
-            email: true,
-            createdAt: true,
-            role: true,
-            isEmailVerified: true
-        } 
-    });
+export const getAllUsers = async (page: number = 1, limit: number = 10) => {
+    const skip = (page - 1) * limit;
 
-    if (!users) throw new Error('No any user found!');
+    const [users, total] = await prisma.$transaction([
+        prisma.user.findMany({
+            select: {
+                id: true,
+                name: true,
+                email: true,
+                createdAt: true,
+                role: true,
+                isEmailVerified: true
+            },
+            skip,
+            take: limit,
+            orderBy: { createdAt: 'desc' } 
+        }),
+        prisma.user.count()
+    ]);
 
-    return users;
-}
+    if (users.length === 0) throw new Error('No any user found!');
+
+    return {
+        data: users,
+        meta: {
+            total,
+            page,
+            limit,
+            totalPages: Math.ceil(total / limit),
+            hasNextPage: page < Math.ceil(total / limit),
+            hasPrevPage: page > 1
+        }
+    }
+};

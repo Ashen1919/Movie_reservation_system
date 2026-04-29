@@ -22,11 +22,14 @@ export const createGenre = async (req: Request, res: Response) => {
 // Get all genres
 export const getAllGenres = async (req: Request, res: Response) => {
     try {
-        const genres = await GenreService.getAllGenre();
+        const page = parseInt(req.query.page as string) || 1;
+        const limit = parseInt(req.query.limit as string) || 10;
+
+        const result = await GenreService.getAllGenre(page, limit);
 
         res.status(200).json({
             success: true,
-            data: { genres }
+            ...result
         });
     } catch (err: any) {
         res.status(500).json({
