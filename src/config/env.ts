@@ -12,4 +12,7 @@ export const env = {
   adminEmail: process.env.ADMIN_SEED_EMAIL!,
   adminPassword: process.env.ADMIN_SEED_PASSWORD!,
   port: process.env.PORT || '3000',
+  cloudinaryCloudName: process.env.CLOUDINARY_CLOUD_NAME!,
+  cloudinaryApiKey: process.env.CLOUDINARY_API_KEY!,
+  cloudinaryApiSecret: process.env.CLOUDINARY_API_SECRET!,
 };
