@@ -22,6 +22,19 @@
  *      summary: Get all users list
  *      security:
  *          - bearerAuth: []
+ *      parameters:
+ *          - in: query
+ *            name: page
+ *            schema:
+ *              type: integer
+ *              example: 1
+ *            description: Page number (default 1)
+ *          - in: query
+ *            name: limit
+ *            schema:
+ *              type: integer
+ *              example: 10
+ *            description: Number of users per page (default 10)
  *      responses:
  *          200:
  *              description: Successfully retrieve all users
