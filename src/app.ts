@@ -6,6 +6,7 @@ import swaggerUi from 'swagger-ui-express';
 import { swaggerSpec } from "./config/swagger.js";
 import userRoutes from "./modules/users/users.routes.js";
 import genreRoute from "./modules/genres/genre.routes.js";
+import movieRoutes from "./modules/movies/movie.routes.js";
 
 // create express app
 const app = express();
@@ -37,5 +38,6 @@ app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/genres', genreRoute);
+app.use('/api/movies', movieRoutes);
 
 export default app;
