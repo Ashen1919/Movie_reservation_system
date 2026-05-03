@@ -1,5 +1,6 @@
 import type { Request, Response } from 'express';
 import * as MovieService from './movie.service.js';
+import { uploadToCloudinary } from '../../utils/uploadToCloudinary.js';
 
 // Create a new movie
 export const createMovie = async (req: Request, res: Response) => {
@@ -30,7 +31,7 @@ export const uploadPoster = async (req: Request, res: Response) => {
         if (!req.file) {
             return res.status(400).json({ success: false, message: 'Poster file is required' });
         }
-        const posterUrl = (req.file as Express.Multer.File & { path: string }).path;
+        const posterUrl = await uploadToCloudinary(req.file.buffer, 'movie-posters');
         const updatedMovie = await MovieService.uploadPoster(movieId, posterUrl);
         res.status(200).json({
             success: true,
