@@ -7,7 +7,7 @@ const showtimeRoutes = Router();
 
 showtimeRoutes.post('/', authenticate, authorize('ADMIN'), ShowtimeController.createShowtime);
 showtimeRoutes.patch('/:id', authenticate, authorize('ADMIN'), ShowtimeController.updateShowtime);
-showtimeRoutes.get('/seats/:id', authenticate, ShowtimeController.getSeatByShowtime);
+showtimeRoutes.get('/:id/seats', authenticate, ShowtimeController.getSeatByShowtime);
 showtimeRoutes.delete('/:id', authenticate, authorize('ADMIN'), ShowtimeController.deleteShowtime);
 
 export default showtimeRoutes;
