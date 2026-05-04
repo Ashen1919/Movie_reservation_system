@@ -205,3 +205,42 @@
  *       404:
  *         description: Movie not found
  */
+
+/**
+ * @openapi
+ * /api/movies/{id}/showtimes:
+ *   get:
+ *     tags: [Movies]
+ *     summary: Get all showtimes for a movie
+ *     security: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Movie ID
+ *       - in: query
+ *         name: date
+ *         schema:
+ *           type: string
+ *           example: "2026-05-10"
+ *         description: Filter by exact date (YYYY-MM-DD)
+ *       - in: query
+ *         name: fromDate
+ *         schema:
+ *           type: string
+ *           example: "2026-05-10"
+ *         description: Range start date (YYYY-MM-DD)
+ *       - in: query
+ *         name: toDate
+ *         schema:
+ *           type: string
+ *           example: "2026-05-13"
+ *         description: Range end date (YYYY-MM-DD)
+ *     responses:
+ *       200:
+ *         description: Showtimes retrieved successfully
+ *       404:
+ *         description: Movie not found
+ */
