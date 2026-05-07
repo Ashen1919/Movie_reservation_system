@@ -90,15 +90,16 @@ model Seat {
 }
 
 model Reservation {
-  id         String            @id @default(uuid())
-  userId     String            @map("user_id")
-  showtimeId String            @map("showtime_id")
-  reservedAt DateTime          @default(now()) @map("reserved_at")
-  status     ReservationStatus @default(CONFIRMED)
-  totalPrice Decimal           @map("total_price") @db.Decimal(10, 2)
-  seats      ReservationSeat[]
-  showtime   Showtime          @relation(fields: [showtimeId], references: [id])
-  user       User              @relation(fields: [userId], references: [id])
+  id              String            @id @default(uuid())
+  userId          String            @map("user_id")
+  showtimeId      String            @map("showtime_id")
+  reservedAt      DateTime          @default(now()) @map("reserved_at")
+  status          ReservationStatus @default(CONFIRMED)
+  totalPrice      Decimal           @map("total_price") @db.Decimal(10, 2)
+  paymentIntentId String?           @map("payment_intent_id")
+  seats           ReservationSeat[]
+  showtime        Showtime          @relation(fields: [showtimeId], references: [id])
+  user            User              @relation(fields: [userId], references: [id])
 
   @@index([userId])
   @@index([showtimeId])
@@ -131,4 +132,5 @@ enum ReservationStatus {
   CONFIRMED
   CANCELLED
   EXPIRED
+  PENDING
 }
