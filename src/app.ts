@@ -8,9 +8,13 @@ import userRoutes from "./modules/users/users.routes.js";
 import genreRoute from "./modules/genres/genre.routes.js";
 import movieRoutes from "./modules/movies/movie.routes.js";
 import showtimeRoutes from "./modules/showtimes/showtimes.routes.js";
+import { handleStripeWebhook } from "./modules/payments/payment.webhook.js";
 
 // create express app
 const app = express();
+
+// webhook route
+app.post('/api/payments/webhook', express.raw({ type: 'application/json' }), handleStripeWebhook );
 
 // config cors
 app.use(cors({
