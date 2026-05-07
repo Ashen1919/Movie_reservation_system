@@ -94,7 +94,7 @@ model Reservation {
   userId          String            @map("user_id")
   showtimeId      String            @map("showtime_id")
   reservedAt      DateTime          @default(now()) @map("reserved_at")
-  status          ReservationStatus @default(CONFIRMED)
+  status          ReservationStatus @default(PENDING)
   totalPrice      Decimal           @map("total_price") @db.Decimal(10, 2)
   paymentIntentId String?           @map("payment_intent_id")
   seats           ReservationSeat[]
