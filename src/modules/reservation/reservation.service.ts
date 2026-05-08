@@ -1,5 +1,5 @@
 import prisma from "../../config/db.js";
-import type { SeatStatus } from "@prisma/client";
+import { Prisma, type SeatStatus } from "@prisma/client";
 import { AppError } from "../../utils/AppError.js";
 
 const LAOCK_DURATION_MINUTES = 10;
@@ -7,12 +7,19 @@ const LAOCK_DURATION_MINUTES = 10;
 export const lockSeats = async (userId: string, showTimeId: string, seatIds: string[]) => {
     // Implement the logic to lock the seats for the user
     return prisma.$transaction(async (tx) => {
-        const lockedRows = await tx.$queryRaw<{id: string; status: SeatStatus; showtime_id: string}[]>`
-        SELECT id, status, showtime_id
-        FROM "Seat"
-        WHERE id = ANY(${seatIds}::uuid[]) AND showtime_id = ${showTimeId}::uuid
-        FOR UPDATE
-      `;
+        const lockedRows = await tx.$queryRaw<
+        { id: string; status: SeatStatus; showtime_id: string }[]
+        >(
+        Prisma.sql`
+            SELECT id, status, showtime_id
+            FROM "seats"
+            WHERE id IN (${Prisma.join(
+            seatIds.map(id => Prisma.sql`${id}::uuid`)
+            )})
+            AND showtime_id = ${showTimeId}::uuid
+            FOR UPDATE
+        `
+        );
 
     // Check if all requested seats are available
     if (lockedRows.length !== seatIds.length) {
@@ -55,12 +62,12 @@ export const lockSeats = async (userId: string, showTimeId: string, seatIds: str
             status: "PENDING",
             totalPrice,
             reservedAt: new Date(),
-            ReservationSeat: {
+            seats: {
                 create: seatIds.map(seatId => ({ seatId }))
             },
         },
         include: {
-            ReservationSeat: { include: { seat: true } },
+            seats: { include: { seat: true } },
             showtime: { include: { movie: true } }
         }
     });
@@ -90,11 +97,27 @@ export const confirmReservation = async (userId: string, reservationId: string) 
         );
 
         if (expiredSeats) {
-            await tx.reservation.update({
-                where: { id: reservationId },
-                data: { status: "EXPIRED" }
+            await prisma.$transaction(async (cleanupTx) => {
+                await cleanupTx.seat.updateMany({
+                    where: { id: { in: seatIds } },
+                    data: { status: "AVAILABLE", lockedUntil: null }
+                });
+
+                await cleanupTx.showtime.update({
+                    where: { id: reservation.showtimeId },
+                    data: { availableSeats: { increment: seatIds.length } }
+                });
+
+                await cleanupTx.reservation.update({
+                    where: { id: reservationId },
+                    data: { status: "EXPIRED" }
+                });
             });
-            throw new AppError("Some of the seat locks have expired, reservation is now expired", 400);
+
+            throw new AppError(
+                "Seat lock has expired. Please start the booking process again.",
+                410
+            );
         };
 
         // update reservation status to RESERVED
@@ -108,7 +131,7 @@ export const confirmReservation = async (userId: string, reservationId: string) 
             where: { id: reservationId },
             data: { status: 'CONFIRMED' },
             include: {
-                ReservationSeat: { include: { seat: true } },
+                seats: { include: { seat: true } },
                 showtime: { include: { movie: true } }
             }
         });
@@ -142,7 +165,7 @@ export const cancelReservation = async (userId: string, reservationId: string) =
         });
 
         // increase the available seats count
-        if (reservation.status === 'CONFIRMED') {
+        if (reservation.status === 'CONFIRMED' || reservation.status === 'PENDING') {
             await tx.showtime.update({
                 where: { id: reservation.showtimeId },
                 data: { availableSeats: { increment: seatIds.length }}
@@ -153,7 +176,7 @@ export const cancelReservation = async (userId: string, reservationId: string) =
             where: { id: reservationId },
             data: { status: 'CANCELLED' },
             include: {
-                ReservationSeat: { include: { seat: true } },
+                seats: { include: { seat: true } },
                 showtime: { include: { movie: true } }
             }
         });
@@ -169,7 +192,7 @@ export async function getMyReservations(userId: string) {
       showtime: {
         include: { movie: { include: { genres: { include: { genre: true } } } } },
       },
-      ReservationSeat: { include: { seat: true } },
+      seats: { include: { seat: true } },
     },
     orderBy: { reservedAt: 'desc' },
   });
