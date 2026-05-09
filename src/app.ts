@@ -10,6 +10,7 @@ import movieRoutes from "./modules/movies/movie.routes.js";
 import showtimeRoutes from "./modules/showtimes/showtimes.routes.js";
 import { handleStripeWebhook } from "./modules/payments/payment.webhook.js";
 import reservationRoute from "./modules/reservation/reservation.routes.js";
+import paymentRoute from "./modules/payments/payment.routes.js";
 
 // create express app
 const app = express();
@@ -47,5 +48,6 @@ app.use('/api/genres', genreRoute);
 app.use('/api/movies', movieRoutes);
 app.use('/api/showtimes', showtimeRoutes);
 app.use('/api/reservations', reservationRoute);
+app.use('/api/payments', paymentRoute);
 
 export default app;

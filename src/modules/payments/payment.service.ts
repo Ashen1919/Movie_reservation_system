@@ -13,11 +13,11 @@ export const createPaymentIntent = async (userId: string, reservationId: string)
 
     if (!reservation) throw new AppError("Reservation not found", 404);
     if (reservation.userId !== userId) throw new AppError("Forbidden", 403);
-    if (reservation.status === "PENDING") throw new AppError("Payment already initiated for this reservation", 400);
+    if (reservation.status !== "PENDING") throw new AppError("Payment already initiated for this reservation", 400);
 
     const paymentIntent = await stripe.paymentIntents.create({
         amount: Math.round(Number(reservation.totalPrice) * 100),
-        currency: "lkr",
+        currency: "usd",
         metadata: {
             reservationId: reservation.id,
             userId: reservation.userId
