@@ -11,7 +11,7 @@ model User {
   name            String
   email           String        @unique
   passwordHash    String        @map("password_hash")
-  createdAt       DateTime      @default(now()) @map("created_at")  @db.Timestamptz()
+  createdAt       DateTime      @default(now()) @map("created_at") @db.Timestamptz()
   updatedAt       DateTime      @updatedAt @map("updated_at") @db.Timestamptz()
   refreshToken    String?       @map("refresh_token")
   role            Role          @default(USER)
@@ -36,7 +36,7 @@ model Movie {
   description     String
   posterUrl       String?      @map("poster_url")
   durationMinutes Int          @map("duration_minutes")
-  createdAt       DateTime     @default(now()) @map("created_at")  @db.Timestamptz()
+  createdAt       DateTime     @default(now()) @map("created_at") @db.Timestamptz()
   updatedAt       DateTime     @updatedAt @map("updated_at") @db.Timestamptz()
   genres          MovieGenre[]
   showtimes       Showtime[]
@@ -93,10 +93,11 @@ model Reservation {
   id              String            @id @default(uuid())
   userId          String            @map("user_id")
   showtimeId      String            @map("showtime_id")
-  reservedAt      DateTime          @default(now()) @map("reserved_at")  @db.Timestamptz()
+  reservedAt      DateTime          @default(now()) @map("reserved_at") @db.Timestamptz()
   status          ReservationStatus @default(PENDING)
   totalPrice      Decimal           @map("total_price") @db.Decimal(10, 2)
   paymentIntentId String?           @map("payment_intent_id")
+  idempotencyKey  String?           @unique @map("idempotency_key")
   seats           ReservationSeat[]
   showtime        Showtime          @relation(fields: [showtimeId], references: [id])
   user            User              @relation(fields: [userId], references: [id])
