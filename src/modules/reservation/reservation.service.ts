@@ -14,9 +14,9 @@ export const lockSeats = async (userId: string, showTimeId: string, seatIds: str
             SELECT id, status, showtime_id
             FROM "seats"
             WHERE id IN (${Prisma.join(
-            seatIds.map(id => Prisma.sql`${id}::uuid`)
+            seatIds.map(id => Prisma.sql`${id}`)
             )})
-            AND showtime_id = ${showTimeId}::uuid
+            AND showtime_id = ${showTimeId}
             FOR UPDATE
         `
         );
