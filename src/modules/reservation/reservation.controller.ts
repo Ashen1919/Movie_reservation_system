@@ -6,7 +6,7 @@ import * as ReservationService from './reservation.service.js';
 export const lockSeats = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { showtimeId, seatIds } = loackSeatsSchema.parse(req.body);
-        const userId = (req as any).user!.id;
+        const userId = (req as any).user!.userId;
 
         const { reservation, lockedUntil } = await ReservationService.lockSeats(
             userId,
@@ -27,7 +27,7 @@ export const lockSeats = async (req: Request, res: Response, next: NextFunction)
 export const confirmReservation = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { reservationId } = confirmReservationSchema.parse(req.body);
-        const userId = (req as any).user!.id;
+        const userId = (req as any).user!.userId;
 
         const reservation = await ReservationService.confirmReservation(userId, reservationId);
 
@@ -43,7 +43,7 @@ export const confirmReservation = async (req: Request, res: Response, next: Next
 // Get my reservations
 export const getMyReservations = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const userId = (req as any).user!.id;
+        const userId = (req as any).user!.userId;
         const reservations = await ReservationService.getMyReservations(userId);
 
         res.status(200).json({
@@ -65,7 +65,7 @@ export const cancelReservation = async (req: Request, res: Response, next: NextF
             return res.status(400).json({ success: false, message: 'Reservation ID is required' });
         }
 
-        const userId = (req as any).user!.id;
+        const userId = (req as any).user!.userId;
 
         const reservation = await ReservationService.cancelReservation(userId, reservationId);
 
