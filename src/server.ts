@@ -9,6 +9,3 @@ app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
     startExpiredLockJobs();
 });
-
-const now = new Date();
-console.log(`Server started at ${now}`);

@@ -5,7 +5,7 @@ import { AppError } from "../../utils/AppError.js";
 
 const stripe = new Stripe(env.stripeSecretKey);
 
-export const createPaymentIntent = async (userId: string, reservationId: string) => {
+export const createPaymentIntent = async (userId: string, reservationId: string, idempotencyKey: string) => {
     const reservation = await prisma.reservation.findUnique({
         where: { id: reservationId },
         include: { showtime: { include: { movie: true } } }
@@ -14,21 +14,46 @@ export const createPaymentIntent = async (userId: string, reservationId: string)
     if (!reservation) throw new AppError("Reservation not found", 404);
     if (reservation.userId !== userId) throw new AppError("Forbidden", 403);
     if (reservation.status !== "PENDING") throw new AppError("Payment already initiated for this reservation", 400);
+    if (reservation.idempotencyKey === idempotencyKey) {
+        if (reservation.idempotencyKey) {
+            const existingPaymentIntent = await stripe.paymentIntents.retrieve(reservation.paymentIntentId!);
+            // if already paid
+            if (existingPaymentIntent.status === "succeeded") {
+                throw new AppError(
+                    "Payment already completed for this reservation",
+                    400
+                );
+            };
+
+            return { 
+                clientSecret: existingPaymentIntent.client_secret,
+                duplicate: true
+            };
+        }
+    };
 
     const paymentIntent = await stripe.paymentIntents.create({
         amount: Math.round(Number(reservation.totalPrice) * 100),
-        currency: "usd",
+        currency: "lkr",
         metadata: {
             reservationId: reservation.id,
             userId: reservation.userId
         },
         description: `Payment for reservation ${reservation.id} - ${reservation.showtime.movie.title}`
+    }, {
+        idempotencyKey: idempotencyKey
     });
 
     await prisma.reservation.update({
         where: { id: reservationId },
-        data: { paymentIntentId: paymentIntent.id, }
+        data: { 
+            paymentIntentId: paymentIntent.id, 
+            idempotencyKey: idempotencyKey,
+        }
     });
 
-    return { clientSecret: paymentIntent.client_secret };
+    return { 
+        clientSecret: paymentIntent.client_secret,
+        duplicate: false
+    };
 };
