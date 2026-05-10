@@ -17,4 +17,7 @@ export const env = {
   cloudinaryApiSecret: process.env.CLOUDINARY_API_SECRET!,
   stripeSecretKey: process.env.STRIPE_SECRET_KEY!,
   stripeWebhookSecret: process.env.STRIPE_WEBHOOK_SECRET!,
+  redisHost: process.env.REDIS_HOST || 'localhost',
+  redisPort: process.env.REDIS_PORT || '6379',
+  redisPassword: process.env.REDIS_PASSWORD,
 };
