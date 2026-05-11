@@ -1,5 +1,30 @@
 import prisma from "../../config/db.js";
+import redis from "../../config/redis.js";
 import { generateSeats } from "../../helpers/generateSeats.js";
+
+// define cache keys
+const CACHE_KEYS = {
+    showtimesByMovie: (movieId: string, date?: string) => `showtimes:movie:${movieId}:${date ?? 'all' }`,
+    seatsByShowtime: (showtimeId: string) => `seats:showtime:${showtimeId}`,
+};
+
+// define TTL for cache
+const TTL = {
+  showtimes: 60,
+  seats: 10,
+};
+
+// Invalidate cache for showtimes of a movie
+const invalidateShowtimesCache = async (movieId: string, showtimeId?: string) => {
+    const listKeys = await redis.keys(`showtimes:movie:${movieId}:*`);
+    if (listKeys.length) {
+        await redis.del(...listKeys);
+    }
+
+    if (showtimeId) {
+        await redis.del(CACHE_KEYS.seatsByShowtime(showtimeId));
+    }
+};
 
 // Create showtime for a movie
 export const createShowtime = async (data: {
@@ -56,6 +81,7 @@ export const createShowtime = async (data: {
         return newShowtime;
     });
 
+    await invalidateShowtimesCache(data.movieId, showtime.id);
     return showtime;
 };
 
@@ -64,6 +90,14 @@ export const getShowtimesByMovie = async (movieId: string, date?: string) => {
     // check movie is exist
     const movie = await prisma.movie.findUnique({ where: { id: movieId } });
     if (!movie) throw new Error("Movie not found");
+
+    // check cache first
+    const cacheKey = CACHE_KEYS.showtimesByMovie(movieId, date);
+    const cached = await redis.get(cacheKey);
+
+    if (cached) {
+        return JSON.parse(cached);
+    }
 
     // build query conditions
     const where: object = {
@@ -75,11 +109,15 @@ export const getShowtimesByMovie = async (movieId: string, date?: string) => {
             },
         })
     };
-    return await prisma.showtime.findMany({ 
+    const showtimes = await prisma.showtime.findMany({ 
         where,
         orderBy: { startTime: 'asc' },
         include: { movie: { select: { title: true, durationMinutes: true } } } 
     });
+
+    // cache the result
+    await redis.set(cacheKey, JSON.stringify(showtimes), 'EX', TTL.showtimes);
+    return showtimes;
 };
 
 // Available seats for showtime
@@ -87,6 +125,13 @@ export const getSeatsByMovie = async (showtimeId: string) => {
     // check showtime is exist
     const showtime = await prisma.showtime.findUnique({ where: { id: showtimeId } });
     if (!showtime) throw new Error("Showtime not found");
+
+    // check cache first
+    const cacheKey = CACHE_KEYS.seatsByShowtime(showtimeId);
+    const cached = await redis.get(cacheKey);
+    if (cached) {
+        return JSON.parse(cached);
+    }
 
     const seats = await prisma.seat.findMany({
         where: { showtimeId },
@@ -101,12 +146,16 @@ export const getSeatsByMovie = async (showtimeId: string) => {
         return acc;
     }, {} as Record<string, typeof seats>);
 
-    return {
+    const result = {
         showtimeId,
         availableSeats: showtime.availableSeats,
         totalSeats: showtime.totalSeats,
         seats: grouped,
     };
+
+    // cache the result
+    await redis.set(cacheKey, JSON.stringify(result), 'EX', TTL.seats);
+    return result;
 };
 
 // Update showtime details
@@ -119,14 +168,18 @@ export const updateShowtime = async (showtimeId: string, data: {
     const showtime = await prisma.showtime.findUnique({ where: { id: showtimeId } });
     if (!showtime) throw new Error("Showtime not found");
 
+    // check associated movie is exist
+    const movie = await prisma.movie.findUnique({ where: { id: showtime.movieId } });
+    if (!movie) throw new Error("Associated movie not found");
+
+    // Calculate new end time based on new start time or existing start time
+    const newStartTime = data.startTime ?? showtime.startTime;
+    const newHallName = data.hallName ?? showtime.hallName;
+    const newEndTime = new Date(newStartTime.getTime() + movie!.durationMinutes * 60 * 1000);
+
     // If hall or time is changing, check for overlap
     if (data.hallName || data.startTime) {
-        const newStartTime = data.startTime ?? showtime.startTime;
-        const newHallName = data.hallName ?? showtime.hallName;
-
-        const movie = await prisma.movie.findUnique({ where: { id: showtime.movieId } });
-        const newEndTime = new Date(newStartTime.getTime() + movie!.durationMinutes * 60 * 1000);
-
+        // check hall overlap excluding current showtime
         const overlap = await prisma.showtime.findFirst({
             where: {
                 id: { not: showtimeId },
@@ -141,14 +194,18 @@ export const updateShowtime = async (showtimeId: string, data: {
     }
 
     // Update showtime details
-    return await prisma.showtime.update({
+    const updated = await prisma.showtime.update({
         where: { id: showtimeId },
         data: {
-            startTime: data.startTime ?? showtime.startTime,
+            startTime: newStartTime,
+            endTime: newEndTime,
             price: data.price ?? showtime.price,
-            hallName: data.hallName ?? showtime.hallName,
+            hallName: newHallName,
         },
     });
+
+    await invalidateShowtimesCache(showtime.movieId, showtimeId);
+    return updated;
 };
 
 // Delete showtime
@@ -156,6 +213,7 @@ export const deleteShowtime = async (showtimeId: string) => {
     // check showtime is exist
     const showtime = await prisma.showtime.findUnique({ where: { id: showtimeId } });
     if (!showtime) throw new Error("Showtime not found");
-
+    
+    await invalidateShowtimesCache(showtime.movieId, showtimeId);
     await prisma.showtime.delete({ where: { id: showtimeId } });
 }
