@@ -1,5 +1,28 @@
 import type { Prisma } from "@prisma/client";
 import prisma from "../../config/db.js";
+import redis from "../../config/redis.js";
+
+// define TTL for cache in seconds
+const MOVIE_TTL = 300;
+const MOVIE_LIST_TTL = 60;
+
+// define cache keys
+const CACHE_KEYS = {
+    movieById: (id: string) => `movie:${id}`,
+    allMovies: (page: number, limit: number) => `movies:page:${page}:limit:${limit}`,
+};
+
+// Helper function to invalidate cache for movies
+const invalidateMovieCache = async (movieId?: string) => {
+    // invalidate cache for movie list
+    const listKeys = await redis.keys(`movies:page:*`);
+    if (listKeys.length) {
+        await redis.del(...listKeys);
+    };
+
+    // invalidate cache for specific movie if movieId is provided
+    if (movieId) await redis.del(`movie:${movieId}`);
+};
 
 // Create a new movie
 export const createMovie = async (data: {
@@ -39,6 +62,8 @@ export const createMovie = async (data: {
             include: { genre: true }
         }
     } });
+
+    await invalidateMovieCache();
     return newMovie;
 };
 
@@ -55,13 +80,24 @@ export const uploadPoster = async (movieId: string, posterUrl: string) => {
         where: { id: movieId },
         data: { posterUrl }
     });
+
+    await invalidateMovieCache(movieId);
     return updatedMovie;
 };
 
 // Get all movies with pagination
 export const getAllMovies = async (page: number, limit: number) => {
+    // check cache first
+    const cacheKey = CACHE_KEYS.allMovies(page, limit);
+    const cachedData = await redis.get(cacheKey);
+    if (cachedData) {
+        return JSON.parse(cachedData);
+    }
+
+    // calculate skip for pagination
     const skip = (page - 1) * limit;
 
+    // fetch movies and total count in a transaction
     const [movies, total] = await prisma.$transaction([
         prisma.movie.findMany({
             include: {
@@ -71,10 +107,11 @@ export const getAllMovies = async (page: number, limit: number) => {
             },
             skip,
             take: limit,
+            orderBy: { createdAt: 'desc' }
         }),
         prisma.movie.count()
     ]);
-    return { 
+    const result = { 
         data: movies,
         meta: {
             total,
@@ -85,10 +122,21 @@ export const getAllMovies = async (page: number, limit: number) => {
             hasPrevPage: page > 1
         }
     };
+
+    // cache the result
+    await redis.set(cacheKey, JSON.stringify(result), 'EX', MOVIE_LIST_TTL);
+    return result;
 };
 
 // Get movie details by ID
 export const getMovieById = async (movieId: string) => {
+    // check cache first
+    const cacheKey = CACHE_KEYS.movieById(movieId);
+    const cachedData = await redis.get(cacheKey);
+    if (cachedData) {
+        return JSON.parse(cachedData);
+    }
+
     const movie = await prisma.movie.findUnique({
         where: { id: movieId },
         include: {
@@ -101,6 +149,9 @@ export const getMovieById = async (movieId: string) => {
     if (!movie) {
         throw new Error('Movie not found');
     }
+
+    // cache the result
+    await redis.set(cacheKey, JSON.stringify(movie), 'EX', MOVIE_TTL);
     return movie;
 };
 
@@ -147,6 +198,8 @@ export const updateMovie = async (movieId: string, data: { title?: string, descr
             genres: { include: { genre: true } } 
         }
     });
+
+    await invalidateMovieCache(movieId);
     return updatedMovie;
 };
 
@@ -159,4 +212,5 @@ export const deleteMovie = async (movieId: string) => {
     }
     // delete the movie
     await prisma.movie.delete({ where: { id: movieId } });
+    await invalidateMovieCache(movieId);
 };
