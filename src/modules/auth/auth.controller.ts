@@ -43,7 +43,7 @@ export const refresh = async (req: Request, res: Response) => {
         const token = req.cookies?.refreshToken;
         if(!token) throw new Error('No refresh token available.');
 
-        // geberate new tokens
+        // generate new tokens
         const {accessToken, refreshToken} = await AuthService.refresh(token);
         res.cookie('refreshToken', refreshToken, {httpOnly: true, secure: process.env.NODE_ENV === 'production'});
 
@@ -62,7 +62,7 @@ export const refresh = async (req: Request, res: Response) => {
 // logout controller
 export const logout = async (req: Request, res: Response) => {
     try {
-        await AuthService.logout((req as any).user.userId);
+        await AuthService.logout((req as any).user.userId, req.cookies?.refreshToken);
         res.clearCookie('refreshToken');
         res.status(200).json({
             success: true,
