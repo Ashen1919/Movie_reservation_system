@@ -6,7 +6,7 @@ const redis = new Redis({
     port: Number(env.redisPort ?? 6379),
     password: env.redisPassword,
     lazyConnect: true,
-    maxRetriesPerRequest: 3,
+    maxRetriesPerRequest: null,
 });
 
 redis.on('error', (err) => { console.error('Redis error:', err); });

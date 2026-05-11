@@ -7,17 +7,18 @@ datasource db {
 }
 
 model User {
-  id              String        @id @default(uuid())
-  name            String
-  email           String        @unique
-  passwordHash    String        @map("password_hash")
-  createdAt       DateTime      @default(now()) @map("created_at") @db.Timestamptz()
-  updatedAt       DateTime      @updatedAt @map("updated_at") @db.Timestamptz()
-  refreshToken    String?       @map("refresh_token")
-  role            Role          @default(USER)
-  isEmailVerified Boolean       @default(false)
-  isBlocked       Boolean       @default(false)
-  reservations    Reservation[]
+  id                 String        @id @default(uuid())
+  name               String
+  email              String        @unique
+  passwordHash       String        @map("password_hash")
+  createdAt          DateTime      @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt          DateTime      @updatedAt @map("updated_at") @db.Timestamptz()
+  role               Role          @default(USER)
+  emailVerifyToken   String?       @map("email_verify_token")
+  emailVerifyExpires DateTime?     @map("email_verify_expires")
+  isEmailVerified    Boolean       @default(false)
+  isBlocked          Boolean       @default(false)
+  reservations       Reservation[]
 
   @@map("users")
 }
