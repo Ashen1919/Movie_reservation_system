@@ -11,6 +11,7 @@ import showtimeRoutes from "./modules/showtimes/showtimes.routes.js";
 import { handleStripeWebhook } from "./modules/payments/payment.webhook.js";
 import reservationRoute from "./modules/reservation/reservation.routes.js";
 import paymentRoute from "./modules/payments/payment.routes.js";
+import { globalLimiter } from "./middlewares/rateLimiter.js";
 
 // create express app
 const app = express();
@@ -40,6 +41,9 @@ app.get("/health", (req, res) => {
 app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
     swaggerOptions: { persistAuthorization: true }
 }));
+
+// apply global rate limiter to all API routes
+app.use('/api' ,globalLimiter);
 
 // routes
 app.use('/api/auth', authRoutes);
