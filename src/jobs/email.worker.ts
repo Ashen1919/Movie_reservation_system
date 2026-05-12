@@ -21,8 +21,6 @@ export const emailWorker = new Worker<emailJobPayload>('email-queue',
                 subject,
                 html,
             });
-
-            console.log(`Verification email sent to ${data.to}`);
         };
     },
     {

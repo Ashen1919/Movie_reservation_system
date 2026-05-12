@@ -15,7 +15,7 @@ model User {
   updatedAt          DateTime      @updatedAt @map("updated_at") @db.Timestamptz()
   role               Role          @default(USER)
   emailVerifyToken   String?       @map("email_verify_token")
-  emailVerifyExpires DateTime?     @map("email_verify_expires")
+  emailVerifyExpires DateTime?     @map("email_verify_expires") @db.Timestamptz()
   isEmailVerified    Boolean       @default(false)
   isBlocked          Boolean       @default(false)
   reservations       Reservation[]

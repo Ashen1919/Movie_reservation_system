@@ -8,5 +8,7 @@ authRoutes.post('/signup', AuthController.signup);
 authRoutes.post('/login', AuthController.login);
 authRoutes.post('/refresh', AuthController.refresh);
 authRoutes.post('/logout', authenticate, AuthController.logout);
+authRoutes.post('/verify-email', AuthController.verifyEmail);
+authRoutes.post('/resend-verification', AuthController.resendVerificationEmail);
 
 export default authRoutes;
