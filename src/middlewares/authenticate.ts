@@ -27,7 +27,7 @@ export const authenticate = async (req: Request, res: Response, next: NextFuncti
         
         const user = await prisma.user.findUnique({
             where: { id: payload.userId },
-            select: { isBlocked: true }
+            select: { isBlocked: true, isEmailVerified: true }
         });
 
         if (!user) {
@@ -37,6 +37,11 @@ export const authenticate = async (req: Request, res: Response, next: NextFuncti
         if (user.isBlocked) {
             return res.status(403).json({ success: false, message: 'Your account has been blocked' });
         }
+
+        if (!user.isEmailVerified) {
+            return res.status(403).json({ success: false, message: 'Please verify your email to access this resource' });
+        }
+        
         (req as any).user = payload;
         next();
     } catch (err: any) {

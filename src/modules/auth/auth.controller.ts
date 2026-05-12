@@ -23,7 +23,7 @@ export const login = async (req: Request, res: Response) => {
     try {
         const {email, password} = req.body;
         const {accessToken, refreshToken} = await AuthService.login(email, password);
-        res.cookie('refreshToken', refreshToken, {httpOnly: true, secure: process.env.NODE_ENV === 'production'});
+        res.cookie('refreshToken', refreshToken, {httpOnly: true, sameSite: 'strict', secure: process.env.NODE_ENV === 'production'});
         res.status(200).json({
             success: true,
             data: accessToken
@@ -45,7 +45,7 @@ export const refresh = async (req: Request, res: Response) => {
 
         // generate new tokens
         const {accessToken, refreshToken} = await AuthService.refresh(token);
-        res.cookie('refreshToken', refreshToken, {httpOnly: true, secure: process.env.NODE_ENV === 'production'});
+        res.cookie('refreshToken', refreshToken, {httpOnly: true, sameSite: 'strict', secure: process.env.NODE_ENV === 'production'});
 
         res.status(200).json({
             success: true,
@@ -74,4 +74,40 @@ export const logout = async (req: Request, res: Response) => {
             message: err.message
         });
     }
-}
+};
+
+// verify email controller
+export const verifyEmail = async (req: Request, res: Response) => {
+    try {
+        const {token} = req.body;
+        if (typeof token !== 'string' || !token) throw new Error('Invalid token');
+        await AuthService.verifyEmail(token);
+        res.status(200).json({
+            success: true,
+            message: 'Email verified successfully.'
+        });
+    } catch (err: any) {
+        res.status(400).json({
+            success: false,
+            message: err.message
+        });
+    }
+};
+
+// resend verification email controller
+export const resendVerificationEmail = async (req: Request, res: Response) => {
+    try {
+        const {email} = req.body;
+        if (typeof email !== 'string' || !email) throw new Error('Invalid email');
+        await AuthService.resendVerificationEmail(email);
+        res.status(200).json({
+            success: true,
+            message: 'Verification email resent successfully.'
+        });
+    } catch (err: any) {
+        res.status(400).json({
+            success: false,
+            message: err.message
+        });
+    }
+};
