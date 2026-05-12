@@ -20,4 +20,10 @@ export const env = {
   redisHost: process.env.REDIS_HOST || 'localhost',
   redisPort: process.env.REDIS_PORT || '6379',
   redisPassword: process.env.REDIS_PASSWORD,
+  smtpHost: process.env.SMTP_HOST!,
+  smtpPort: Number(process.env.SMTP_PORT || '465'),
+  smtpUser: process.env.SMTP_USER!,
+  smtpPass: process.env.SMTP_PASS!,
+  emailFrom: process.env.EMAIL_FROM || 'no-reply@ashengimhana.me',
+  appBaseUrl: process.env.APP_BASE_URL || 'http://localhost:3000',
 };
