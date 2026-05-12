@@ -2,11 +2,13 @@ import { Router } from "express";
 import { authenticate } from "../../middlewares/authenticate.js";
 import { authorize } from "../../middlewares/authorize.js";
 import * as ShowtimeController from './showtimes.controller.js';
+import { validate } from "../../utils/validate.js";
+import { createShowtimeSchema, updateShowtimeSchema } from "./showtime.schema.js";
 
 const showtimeRoutes = Router();
 
-showtimeRoutes.post('/', authenticate, authorize('ADMIN'), ShowtimeController.createShowtime);
-showtimeRoutes.patch('/:id', authenticate, authorize('ADMIN'), ShowtimeController.updateShowtime);
+showtimeRoutes.post('/', authenticate, authorize('ADMIN'), validate(createShowtimeSchema) ,ShowtimeController.createShowtime);
+showtimeRoutes.patch('/:id', authenticate, authorize('ADMIN'), validate(updateShowtimeSchema) ,ShowtimeController.updateShowtime);
 showtimeRoutes.get('/:id/seats', authenticate, ShowtimeController.getSeatByShowtime);
 showtimeRoutes.delete('/:id', authenticate, authorize('ADMIN'), ShowtimeController.deleteShowtime);
 
