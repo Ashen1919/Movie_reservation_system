@@ -5,3 +5,4 @@ dist/
 prisma/*.db
 /src/generated/prisma
 .vscode
+package-lock.json
