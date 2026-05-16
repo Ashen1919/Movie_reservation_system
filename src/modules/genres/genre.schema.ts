@@ -8,3 +8,6 @@ export const genreQuerySchema = z.object({
     page: z.coerce.number().int().positive().default(1),
     limit: z.coerce.number().int().positive().max(100).default(10)
 });
+
+export type CreateGenreDto = z.infer<typeof createGenreSchema>;
+export type GenreQueryDto = z.infer<typeof genreQuerySchema>;

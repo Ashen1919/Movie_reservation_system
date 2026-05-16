@@ -1,16 +1,17 @@
 import type { Request, Response } from 'express';
 import * as ShowtimesService from './showtimes.service.js';
+import { createShowtimeSchema, showtimeIdParamSchema, updateShowtimeSchema } from './showtime.schema.js';
 
 // create showtime
 export const createShowtime = async (req: Request, res: Response) => {
     try {
-        const { movieId, startTime, price, hallName, rows, seatsPerRow } = req.body;
+        const { movieId, startTime, price, hallName, rows, seatsPerRow } = createShowtimeSchema.parse(req.body);
         const showtime = await ShowtimesService.createShowtime({
             movieId,
             startTime: new Date(startTime),
             price: Number(price),
             hallName,
-            rows,
+            ...(rows && { rows }),
             ...(seatsPerRow && { seatsPerRow: Number(seatsPerRow) })
         });
         res.status(201).json({ success: true, data: showtime });
@@ -25,7 +26,7 @@ export const createShowtime = async (req: Request, res: Response) => {
 // get showtimes by movie
 export const getShowtimesByMovie = async (req: Request, res: Response) => {
     try {
-        const { id } = req.params;
+        const { id } = showtimeIdParamSchema.parse(req.params);
         const movieId = Array.isArray(id) ? id[0] : id;
 
         if (!movieId) {
@@ -50,7 +51,7 @@ export const getShowtimesByMovie = async (req: Request, res: Response) => {
 // get seats by showtime
 export const getSeatByShowtime = async (req: Request, res: Response) => {
     try {
-        const { id } = req.params;
+        const { id } = showtimeIdParamSchema.parse(req.params);
         const showtimeId = Array.isArray(id) ? id[0] : id;
 
         if (!showtimeId) {
@@ -73,7 +74,7 @@ export const getSeatByShowtime = async (req: Request, res: Response) => {
 // update showtime
 export const updateShowtime = async (req: Request, res: Response) => {
     try {
-        const { id } = req.params;
+        const { id } = showtimeIdParamSchema.parse(req.params);
         const showtimeId = Array.isArray(id) ? id[0] : id;
 
         if (!showtimeId) {
@@ -83,11 +84,11 @@ export const updateShowtime = async (req: Request, res: Response) => {
             });
         }
 
-        const { startTime, price, hallName } = req.body;
+        const { startTime, price, hallName } = updateShowtimeSchema.parse(req.body);
         const updatedShowtime = await ShowtimesService.updateShowtime(showtimeId, {
             ...(startTime && { startTime: new Date(startTime) }),
             ...(price && { price: Number(price) }),
-            hallName
+            ...(hallName && { hallName })
         });
         res.status(200).json({ success: true, data: updatedShowtime });
     } catch (err: any) {
@@ -101,7 +102,7 @@ export const updateShowtime = async (req: Request, res: Response) => {
 // delete showtime
 export const deleteShowtime = async (req: Request, res: Response) => {
     try {
-        const { id } = req.params;
+        const { id } = showtimeIdParamSchema.parse(req.params);
         const showtimeId = Array.isArray(id) ? id[0] : id;
 
         if (!showtimeId) {

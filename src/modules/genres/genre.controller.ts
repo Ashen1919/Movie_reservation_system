@@ -1,10 +1,11 @@
 import type { Request, Response } from "express";
 import * as GenreService from './genre.service.js';
+import { createGenreSchema, genreQuerySchema } from "./genre.schema.js";
 
 // create a genre
 export const createGenre = async (req: Request, res: Response) => {
     try {
-        const { name } = req.body;
+        const { name } = createGenreSchema.parse(req.body);
         const genre = await GenreService.createGenre(name);
 
         res.status(201).json({
@@ -22,8 +23,7 @@ export const createGenre = async (req: Request, res: Response) => {
 // Get all genres
 export const getAllGenres = async (req: Request, res: Response) => {
     try {
-        const page = parseInt(req.query.page as string) || 1;
-        const limit = parseInt(req.query.limit as string) || 10;
+        const { page, limit } = genreQuerySchema.parse(req.query);
 
         const result = await GenreService.getAllGenre(page, limit);
 

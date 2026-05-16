@@ -1,10 +1,11 @@
 import type { Request, Response } from "express";
 import * as AuthService from './auth.service.js';
+import { loginSchema, signUpSchema, verifyEmailSchema } from "./auth.schema.js";
 
 // signup controller
 export const signup = async (req: Request, res: Response) => {
     try {
-        const {name, email, password} = req.body;
+        const {name, email, password} = signUpSchema.parse(req.body);
         const user = await AuthService.signup(name, email, password);
         res.status(201).json({
             success: true,
@@ -21,7 +22,7 @@ export const signup = async (req: Request, res: Response) => {
 // login service
 export const login = async (req: Request, res: Response) => {
     try {
-        const {email, password} = req.body;
+        const {email, password} = loginSchema.parse(req.body);
         const {accessToken, refreshToken} = await AuthService.login(email, password);
         res.cookie('refreshToken', refreshToken, {httpOnly: true, sameSite: 'strict', secure: process.env.NODE_ENV === 'production'});
         res.status(200).json({
@@ -97,7 +98,7 @@ export const verifyEmail = async (req: Request, res: Response) => {
 // resend verification email controller
 export const resendVerificationEmail = async (req: Request, res: Response) => {
     try {
-        const {email} = req.body;
+        const {email} = verifyEmailSchema.parse(req.body);
         if (typeof email !== 'string' || !email) throw new Error('Invalid email');
         await AuthService.resendVerificationEmail(email);
         res.status(200).json({
