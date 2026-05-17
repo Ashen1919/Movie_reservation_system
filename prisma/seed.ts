@@ -22,6 +22,7 @@ async function main() {
             email: process.env.ADMIN_SEED_EMAIL!,
             passwordHash,
             role: 'ADMIN',
+            isEmailVerified: true,
         },
     });
 
