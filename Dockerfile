@@ -23,6 +23,8 @@ COPY src ./src
 # Build the TypeScript code
 RUN npm run build
 
+# ---------------------------------------------------------------------------------------------
+
 # stage 2 - production
 
 # Use a smaller Node.js image for the production stage
@@ -54,6 +56,9 @@ COPY prisma ./prisma
 
 # Copy the docker-entrypoint.sh script to the working directory
 COPY docker-entrypoint.sh ./
+
+# Copy the prisma.config.ts file to the working directory
+COPY prisma.config.ts ./
 
 # Change ownership of the application files to the non-root user
 RUN chown -R appuser:appgroup /app && \
