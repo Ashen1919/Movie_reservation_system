@@ -34,13 +34,13 @@ services:
 
   api:
     build:
-      context: .
-      dockerfile: Dockerfile
+      context: ..
+      dockerfile: docker/Dockerfile
       target: production
     container_name: movie_api
     restart: unless-stopped
     env_file:
-      - .env
+      - ../.env
     environment:
       - NODE_ENV=production
     ports:

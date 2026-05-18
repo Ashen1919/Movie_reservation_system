@@ -55,7 +55,7 @@ COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 COPY prisma ./prisma
 
 # Copy the docker-entrypoint.sh script to the working directory
-COPY docker-entrypoint.sh ./
+COPY docker/docker-entrypoint.sh ./
 
 # Copy the prisma.config.ts file to the working directory
 COPY prisma.config.ts ./
