@@ -6,3 +6,10 @@ prisma/*.db
 /src/generated/prisma
 .vscode
 package-lock.json
+
+# ignore terraform files
+terraform/*.tfstate
+terraform/*.tfstate.backup
+terraform/.terraform/
+terraform/terraform.tfvars
+terraform/terraform.tfvars.json
