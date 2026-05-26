@@ -19,14 +19,13 @@ variable "project_name" {
   default     = "movie-reservation-system"
 }
 
-variable "db_username" {
-  description = "RDS master username"
-  type        = string
-  sensitive   = true
+variable "redis_node_type" {
+  type    = string
+  default = "cache.t3.micro"
 }
 
-variable "db_password" {
-  description = "RDS master password"
+variable "redis_auth_token" {
+  description = "Redis AUTH password for ElastiCache cluster"
   type        = string
   sensitive   = true
 }

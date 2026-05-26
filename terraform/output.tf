@@ -9,3 +9,10 @@ output "ecr_repository_url" {
   description = "ECR Repository URL"
   value       = module.ecr.ecr_repo_url
 }
+
+# Elasticache endpoint output
+output "elasticache_endpoint" {
+  description = "Elasticache Endpoint"
+  value = module.elasticache.primary_endpoint
+  sensitive = true
+}
