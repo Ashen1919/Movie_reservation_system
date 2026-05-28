@@ -30,3 +30,13 @@ module "elasticache" {
   node_type = var.redis_node_type
   redis_auth_token = var.redis_auth_token
 }
+
+# module for alb
+module "alb" {
+  source = "./modules/alb"
+  project_name = var.project_name
+  environment  = var.environment
+  vpc_id = module.vpc.vpc_id
+  public_subnet_ids = module.vpc.public_subnet_ids
+  alb_sg_id = module.security_groups.alb_sg_id
+}

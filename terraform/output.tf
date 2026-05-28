@@ -16,3 +16,9 @@ output "elasticache_endpoint" {
   value = module.elasticache.primary_endpoint
   sensitive = true
 }
+
+# alb DNS name output
+output "alb_dns_name" {
+  description = "ALB DNS Name"
+  value       = module.alb.alb_dns_name
+}
