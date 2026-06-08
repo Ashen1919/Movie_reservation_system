@@ -12,3 +12,9 @@ variable "environment" {
   description = "Variable for environment"
   type = string
 }
+
+variable "admin_ip_cidr" {
+  description = "Admin IP for SSH access"
+  type        = string
+  sensitive   = true
+}

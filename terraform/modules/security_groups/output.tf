@@ -8,12 +8,7 @@ output "ecs_sg_id" {
   value = aws_security_group.ecs_sg.id
 }
 
-output "rds_sg_id" {
-  description = "ID of the RDS security group"
-  value = aws_security_group.rds_sg.id
-}
-
-output "elasticache_sg_id" {
-  description = "ID of the ElastiCache security group"
-  value = aws_security_group.elasticache_sg.id
+output "valkey_ec2_sg_id" {
+  description = "ID of the Valkey EC2 security group"
+  value = aws_security_group.valkey_ec2_sg.id
 }
