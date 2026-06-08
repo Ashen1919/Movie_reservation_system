@@ -29,3 +29,20 @@ variable "redis_auth_token" {
   type        = string
   sensitive   = true
 }
+
+variable "admin_ip_cidr" {
+  description = "Admin IP for SSH access"
+  type        = string
+  sensitive   = true
+}
+
+variable "valkey_instance_type" {
+  type    = string
+  default = "t3.micro"
+}
+
+variable "valkey_password" {
+  description = "Valkey AUTH password"
+  type        = string
+  sensitive   = true
+}
